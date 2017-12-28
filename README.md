@@ -8,3 +8,5 @@ Features:
 - Multiple backends
 - Custom headers per all backend calls
 - Authorization per backend
+
+### Created for wolnosciowiec.org
