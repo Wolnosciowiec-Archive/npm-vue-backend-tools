@@ -11,6 +11,56 @@ Features:
 
 ### Created for wolnosciowiec.org
 
+#### Example bootstrap
+
+```js
+/*
+ * Initialize core classes used to interact with backend
+ */
+const backend = new BackendApi({
+  'wolnosciowiec': {
+    'url': isDevEnvironment() ? 'http://localhost' : 'https://wolnosciowiec.net',
+    'authorization': ''
+  },
+
+  'news-feed-provider': {
+    'url': isDevEnvironment() ? 'http://nfp.localhost/dev' : 'https://nfp.wolnosciowiec.net',
+    'authorization': ''
+  }
+})
+
+const pageFetcher = new PageFetcher(backend)
+
+// Enable devtools
+Vue.config.devtools = true
+sync(store, router)
+
+const nprogress = new NProgress({ parent: '.nprogress-container' })
+
+const app = new Vue({
+  router,
+  store,
+  nprogress,
+  ...App,
+  beforeCreate: function () {
+    pageFetcher.setStore(this.$store)
+    URLParametersManager.setParameters(this.$route.query)
+  },
+  watch: {
+    $route () {
+      URLParametersManager.setParameters(this.$route.query)
+    }
+  },
+  provide: {
+    'backend': backend,
+    'pageFetcher': pageFetcher,
+    'parameterManager': URLParametersManager
+  }
+})
+
+export { app, router, store }
+```
+
 #### FormMapper.js
 
 Maps attributes from router (URL) to the HTML form.
