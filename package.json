@@ -1,6 +1,6 @@
 {
   "name": "vue-backend-tools",
-  "version": "1.1.0.0",
+  "version": "1.1",
   "description": "Tools to communicate with backend, cache results, store objects",
   "author": "Wolnosciowiec <admin@wolnosciowiec.net>",
   "license": "LGPLv3",
