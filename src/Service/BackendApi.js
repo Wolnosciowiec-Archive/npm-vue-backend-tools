@@ -18,7 +18,7 @@ class BackendApi {
    * @param [{url: string, headers: Array, error_handler: function}] services
    */
   constructor (services) {
-    this.services = services[0]
+    this.services = services
   }
 
   /**
