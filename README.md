@@ -20,12 +20,16 @@ Features:
 const backend = new BackendApi({
   'wolnosciowiec': {
     'url': isDevEnvironment() ? 'http://localhost' : 'https://wolnosciowiec.net',
-    'authorization': ''
+    'headers': {
+      'Authorization': 'some token here'
+    },
+    'error_handler': function (error, args) { 
+      window.console.error('Error!', error, 'Args:', args)
+    }
   },
 
   'news-feed-provider': {
-    'url': isDevEnvironment() ? 'http://nfp.localhost/dev' : 'https://nfp.wolnosciowiec.net',
-    'authorization': ''
+    'url': isDevEnvironment() ? 'http://nfp.localhost/dev' : 'https://nfp.wolnosciowiec.net'
   }
 })
 

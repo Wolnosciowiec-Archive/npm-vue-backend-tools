@@ -6,65 +6,67 @@ let axios = require('axios')
  *
  * Adds support for:
  *   - Multiple services definition (base urls, authorization)
- *   - Authorization per service
  *   - Custom headers defined for all requests
  */
 class BackendApi {
   /**
    * Example services input:
    * {
-   *     "wolnosciowiec": {"url": "https://wolnosciowiec.org", "authorization": "Bearer ...", "headers": {"X-Something": "value"}}
+   *     "wolnosciowiec": {"url": "https://wolnosciowiec.org", "headers": {"X-Something": "value"}, "error_handler": function (error, args) { }}
    * }
    *
-   * @param services
+   * @param [{url: string, headers: Array, error_handler: function}] services
    */
   constructor (services) {
-    this.services = services
+    this.services = services[0]
   }
 
   /**
    * POST request to the backend server
    *
-   * @param {Object} args
+   * @param {{service: string, path: string, callback: function, headers: Object, data: Object}} args
    */
   post (args) {
-    // @todo: Implement authorization and headers
-    let service = args.service
-    let path = args.hasOwnProperty('path') ? args.path : '/'
-    let data = args.hasOwnProperty('data') ? args.data : ''
-    let callback = args.hasOwnProperty('callback') ? args.callback : function () { }
-
-    axios({
-      method: 'post',
-      url: this.getServiceParameter(service, 'url') + path,
-      data: data
-    })
-      .then(callback)
-      .catch(function (error) {
-        console.error('HTTP Error:', error)
-      })
+    args.method = 'post'
+    return this.request(args)
   }
 
   /**
    * Make GET request to the backend server
    *
-   * @param {Object} args
+   * @param {{service: string, path: string, callback: function, headers: Object, data: Object}}  args
    */
   get (args) {
+    args.method = 'get'
+    return this.request(args)
+  }
+
+  /**
+   * @param {{method: string, service: string, path: string, callback: function, headers: Object, data: Object}} args
+   */
+  request (args) {
+    let method = args.hasOwnProperty('method') ? args.method.toLowerCase() : 'get'
     let service = args.service
     let path = args.hasOwnProperty('path') ? args.path : '/'
     let callback = args.hasOwnProperty('callback') ? args.callback : function () { }
-
-    console.info('[BackendApi] GET ' + service + ' -> ' + this.getServiceParameter(service, 'url') + path)
-    // @todo: Implement authorization and headers
+    let headers = args.hasOwnProperty('headers') ? args.headers : {}
+    let data = args.hasOwnProperty('data') ? args.data : ''
 
     axios({
-      method: 'get',
-      url: this.getServiceParameter(service, 'url') + path
+      method: method,
+      url: this.getServiceParameter(service, 'url') + path,
+      data: data,
+      headers: Object.assign(this.getServiceParameter(service, 'headers', {}), headers)
     })
       .then(callback)
       .catch(function (error) {
         console.error('HTTP Error:', error)
+
+        let errorHandler = this.getServiceParameter(service, 'error_handler', null)
+
+        if (errorHandler !== null) {
+          errorHandler(error, args)
+        }
       })
   }
 
@@ -74,11 +76,17 @@ class BackendApi {
    *
    * @param service
    * @param parameterName
+   * @param defaultValue
+   *
    * @returns {*}
    */
-  getServiceParameter (service, parameterName) {
+  getServiceParameter (service, parameterName, defaultValue) {
     if (typeof this.services[service] !== 'object') {
       throw new Error('Service does not exists')
+    }
+
+    if (!this.services[service].hasOwnProperty(parameterName)) {
+      return defaultValue
     }
 
     return this.services[service][parameterName]
