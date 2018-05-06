@@ -51,18 +51,19 @@ class BackendApi {
     let callback = args.hasOwnProperty('callback') ? args.callback : function () { }
     let headers = args.hasOwnProperty('headers') ? args.headers : {}
     let data = args.hasOwnProperty('data') ? args.data : ''
+    let rThis = this
 
     axios({
       method: method,
       url: this.getServiceParameter(service, 'url') + path,
       data: data,
-      headers: Object.assign(this.getServiceParameter(service, 'headers', {}), headers)
+      headers: this._executeCallbacks(Object.assign(this.getServiceParameter(service, 'headers', {}), headers), args)
     })
       .then(callback)
       .catch(function (error) {
         console.error('HTTP Error:', error)
 
-        let errorHandler = this.getServiceParameter(service, 'error_handler', null)
+        let errorHandler = rThis.getServiceParameter(service, 'error_handler', null)
 
         if (errorHandler !== null) {
           errorHandler(error, args)
@@ -90,6 +91,24 @@ class BackendApi {
     }
 
     return this.services[service][parameterName]
+  }
+
+  /**
+   * Replace all callbacks pushed into the array
+   * with a result of their execution
+   *
+   * @param {} dictionary
+   * @param {} args       Additional args to pass as a context for the callback
+   * @private
+   *
+   * @returns {}
+   */
+  _executeCallbacks (dictionary, args) {
+    for (let index in dictionary) {
+      if (typeof dictionary[index] === 'function') {
+        dictionary[index] = dictionary[index](this, args)
+      }
+    }
   }
 }
 
