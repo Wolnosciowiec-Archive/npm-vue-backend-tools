@@ -32,6 +32,26 @@ class BackendApi {
   }
 
   /**
+   * PUT request
+   *
+   * @param {{service: string, path: string, callback: function, headers: Object, data: Object}} args
+   */
+  put (args) {
+    args.method = 'put'
+    return this.request(args)
+  }
+
+  /**
+   * DELETE request
+   *
+   * @param {{service: string, path: string, callback: function, headers: Object, data: Object}} args
+   */
+  deletionRequest (args) {
+    args.method = 'delete'
+    return this.request(args)
+  }
+
+  /**
    * Make GET request to the backend server
    *
    * @param {{service: string, path: string, callback: function, headers: Object, data: Object}}  args
@@ -63,7 +83,7 @@ class BackendApi {
       .catch(function (error) {
         console.error('HTTP Error:', error)
 
-        let errorHandler = rThis.getServiceParameter(service, 'error_handler', null)
+        let errorHandler = args.hasOwnProperty('onError') ? args.onError : rThis.getServiceParameter(service, 'error_handler', null)
 
         if (errorHandler !== null) {
           errorHandler(error, args)
@@ -109,6 +129,8 @@ class BackendApi {
         dictionary[index] = dictionary[index](this, args)
       }
     }
+
+    return dictionary
   }
 }
 
